@@ -4,10 +4,13 @@ import {
   CreateDateColumn,
   Entity,
   JoinColumn,
+  OneToMany,
   OneToOne,
   PrimaryGeneratedColumn,
 } from "typeorm";
 import { UserOtpEntity } from "./userotp.entity";
+import { UserGender } from "../enum/user.enum";
+import { userBankAccountEntity } from "./user-bankAccount.entity";
 
 @Entity(EntityNames.User)
 export class UserEntity {
@@ -20,11 +23,17 @@ export class UserEntity {
   @Column({ unique: true })
   mobile: string;
   @Column({ nullable: true, unique: true })
+  national_code: string;
+  @Column({ nullable: true, unique: true })
   email: string;
   @Column({ unique: true, nullable: true })
   invite_code: string;
   @Column({ nullable: true, default: false })
   mobile_verify: boolean;
+  @Column({ type: "enum", enum: UserGender, default: UserGender.Man })
+  Gender: string;
+  @CreateDateColumn({ nullable: true })
+  born: Date;
   @CreateDateColumn()
   created_at: Date;
   @Column({ nullable: true })
@@ -32,4 +41,6 @@ export class UserEntity {
   @OneToOne(() => UserOtpEntity, (otp) => otp.user)
   @JoinColumn()
   otp: UserOtpEntity;
+  @OneToMany(() => userBankAccountEntity, (bankAccount) => bankAccount.user)
+  bankAccounts: userBankAccountEntity[];
 }
