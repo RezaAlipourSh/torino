@@ -1,16 +1,24 @@
-import { BadRequestException, Injectable } from "@nestjs/common";
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+  UnauthorizedException,
+} from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { UserEntity } from "../user/entities/user.entity";
 import { Repository } from "typeorm";
 import { UserOtpEntity } from "../user/entities/userotp.entity";
 import { randomInt } from "crypto";
-import { UserSendOtpDto } from "./dto/auth.dto";
+import { UserCheckOtpDto, UserSendOtpDto } from "./dto/auth.dto";
+import { TokensPayload } from "./types/payload";
+import { JwtService } from "@nestjs/jwt";
 
 @Injectable()
 export class AuthService {
   constructor(
     @InjectRepository(UserEntity) private userRepo: Repository<UserEntity>,
-    @InjectRepository(UserOtpEntity) private otpRepo: Repository<UserOtpEntity>
+    @InjectRepository(UserOtpEntity) private otpRepo: Repository<UserOtpEntity>,
+    private jwtService: JwtService
   ) {}
 
   async sendOtp(otpDto: UserSendOtpDto) {
@@ -22,9 +30,41 @@ export class AuthService {
       });
       user = await this.userRepo.save(user);
     }
-    await this.createOtp(user);
+    const { code } = await this.createOtp(user);
     return {
+      code,
       message: "کد یکبار مصرف با موفقیت ارسال شد",
+    };
+  }
+
+  async checkOtp(otpDto: UserCheckOtpDto) {
+    const { code, mobile } = otpDto;
+
+    const now = new Date();
+    const user = await this.userRepo.findOne({
+      where: { mobile },
+      relations: {
+        otp: true,
+      },
+    });
+
+    if (!user || !user?.otp)
+      throw new UnauthorizedException("حساب کاربری یافت نشد");
+    const otp = user?.otp;
+    if (otp?.code !== code)
+      throw new UnauthorizedException("کد یکبار مصرف وارد شده اشتباه است");
+    if (otp?.expires_in < now)
+      throw new UnauthorizedException(" کد یکبار مصرف منقضی شده است");
+    if (!user?.mobile_verify) {
+      await this.userRepo.update({ id: user.id }, { mobile_verify: true });
+    }
+
+    const { accessToken, refreshToken } = this.makeToken({ id: user.id });
+
+    return {
+      accessToken,
+      refreshToken,
+      message: "با موفقیت وارد حساب کاربری خود شدید",
     };
   }
 
@@ -35,7 +75,7 @@ export class AuthService {
     let otp = await this.otpRepo.findOneBy({ userId: user.id });
     if (otp) {
       if (otp.expires_in > new Date()) {
-        throw new BadRequestException("کد یکبار مصرف هنوز منقضی نشده است");
+        throw new BadRequestException("کد یکبار مصرف قبلی هنوز منقضی نشده است");
       }
       otp.code = code;
       otp.expires_in = expiresIn;
@@ -49,5 +89,22 @@ export class AuthService {
     otp = await this.otpRepo.save(otp);
     user.otpId = otp.id;
     await this.userRepo.save(user);
+    return { code };
+  }
+
+  makeToken(payload: TokensPayload) {
+    const accessToken = this.jwtService.sign(payload, {
+      secret: process.env.ACCESS_TOKEN_SECRET,
+      expiresIn: "7d",
+    });
+    const refreshToken = this.jwtService.sign(payload, {
+      secret: process.env.REFRESH_TOKEN_SECRET,
+      expiresIn: "1y",
+    });
+
+    return {
+      accessToken,
+      refreshToken,
+    };
   }
 }
