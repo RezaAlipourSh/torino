@@ -107,4 +107,22 @@ export class AuthService {
       refreshToken,
     };
   }
+
+  async validateAccessToken(token: string) {
+    try {
+      const payload = this.jwtService.verify<TokensPayload>(token, {
+        secret: process.env.ACCESS_TOKEN_SECRET,
+      });
+      if (typeof payload === "object" && payload?.id) {
+        const user = await this.userRepo.findOneBy({ id: payload.id });
+        if (!user) {
+          throw new UnauthorizedException("3وارد حساب کاربری خود شوید");
+        }
+        return user;
+      }
+      throw new UnauthorizedException("4وارد حساب کاربری خود شوید");
+    } catch (error) {
+      throw new UnauthorizedException("5وارد حساب کاربری خود شوید");
+    }
+  }
 }

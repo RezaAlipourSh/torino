@@ -9,8 +9,10 @@ import {
   PrimaryGeneratedColumn,
 } from "typeorm";
 import { UserOtpEntity } from "./userotp.entity";
-import { UserGender } from "../enum/user.enum";
+import { UserGender, UserRole } from "../enum/user.enum";
 import { userBankAccountEntity } from "./user-bankAccount.entity";
+import { BlogEntity } from "src/module/blog/entities/blog.entity";
+import { BlogCommentEntity } from "src/module/blog/entities/blogcomments.entity";
 
 @Entity(EntityNames.User)
 export class UserEntity {
@@ -32,6 +34,8 @@ export class UserEntity {
   mobile_verify: boolean;
   @Column({ type: "enum", enum: UserGender, default: UserGender.Man })
   Gender: string;
+  @Column({ type: "enum", enum: UserRole, default: UserRole.User })
+  role: string;
   @CreateDateColumn({ nullable: true })
   born: Date;
   @CreateDateColumn()
@@ -43,4 +47,8 @@ export class UserEntity {
   otp: UserOtpEntity;
   @OneToMany(() => userBankAccountEntity, (bankAccount) => bankAccount.user)
   bankAccounts: userBankAccountEntity[];
+  @OneToMany(() => BlogEntity, (blog) => blog.author)
+  blogs: BlogEntity[];
+  @OneToMany(() => BlogCommentEntity, (comment) => comment.user)
+  comments: BlogCommentEntity[];
 }
