@@ -12,7 +12,12 @@ import { DeepPartial, Repository } from "typeorm";
 import { TourPlanEntity } from "./entities/tourPlan.entity";
 import { TourPlanDto, UpdatePlanDto } from "./dto/tourplan.dto";
 import { EntityNames } from "src/common/enum/entity-name.enum";
-import { validateNumString } from "./util/tour.functions";
+import {
+  checkDayNightDifference,
+  CountDays,
+  returnDay,
+  validateNumString,
+} from "./util/tour.functions";
 
 @Injectable()
 export class TourService {
@@ -47,9 +52,9 @@ export class TourService {
     validateNumString(price);
     validateNumString(insuranceAmount);
 
-    this.checkDayNightDifference(day, night);
+    checkDayNightDifference(day, night);
 
-    const { returnDate } = this.returnDay(startDate, day, night);
+    const { returnDate } = returnDay(startDate, day, night);
 
     let tour = this.tourRepo.create({
       capacity,
@@ -170,18 +175,18 @@ export class TourService {
         typeof day !== "undefined" &&
         typeof day !== "undefined"
       ) {
-        this.checkDayNightDifference(day, night);
+        checkDayNightDifference(day, night);
         tourObject.day = day;
         tourObject.night = night;
       } else if (day && typeof day !== "undefined") {
-        this.checkDayNightDifference(day, tour.night);
+        checkDayNightDifference(day, tour.night);
         tourObject.day = day;
       } else if (night && typeof night !== "undefined") {
-        this.checkDayNightDifference(tour.day, night);
+        checkDayNightDifference(tour.day, night);
         tourObject.night = night;
       }
       if (startDate) {
-        const { returnDate } = this.returnDay(
+        const { returnDate } = returnDay(
           startDate,
           day ?? tour.day,
           night ?? tour.night
@@ -208,20 +213,13 @@ export class TourService {
     return { message: "تور مورد نظر حذف شد" };
   }
 
-  checkDayNightDifference(day: number, night: number) {
-    if (night - day > 1 || day - night > 1)
-      throw new BadRequestException(
-        `اختلاف روز و شب نباید بیشتر از یک باشد  روز = ${day} شب = ${night}`
-      );
-  }
-
   async createPlan(planDto: TourPlanDto) {
     const { day, description, tourId } = planDto;
     await this.ExistPlanDay(tourId, day);
 
     const tour = await this.findOne(tourId);
 
-    this.CountDays(day, tour.day, tour.night);
+    CountDays(day, tour.day, tour.night);
 
     const plan = this.tourPlanRepo.create({
       tourId,
@@ -245,7 +243,7 @@ export class TourService {
     const planObject: DeepPartial<TourPlanEntity> = {};
     if (tourId) planObject.tourId = tourId;
     if (day) {
-      this.CountDays(day, tour.day, tour.night);
+      CountDays(day, tour.day, tour.night);
       planObject.day = day;
     }
     if (description) planObject.description = description;
@@ -279,21 +277,5 @@ export class TourService {
         "شما قبلا برای این روز تور برنامه درست کرده اید"
       );
     return true;
-  }
-
-  CountDays(day: number, tourDay: number, tourNight: number) {
-    const countDays: number = tourDay > tourNight ? tourDay : tourNight;
-    if (day > countDays || day <= 0) {
-      throw new BadRequestException(
-        "روز انتخابی نباید از تعداد روزها بیشتر باشد یا صفر و منفی باشد"
-      );
-    }
-    return true;
-  }
-
-  returnDay(startDate: Date, day: number, night: number) {
-    const returnDate = new Date(startDate);
-    returnDate.setDate(returnDate.getDate() + (day > night ? day : night));
-    return { returnDate };
   }
 }
