@@ -5,6 +5,7 @@ import { TypeOrmModule } from "@nestjs/typeorm";
 import { TypeOrmConfig } from "src/config/typeorm.config";
 import { AuthModule } from "../auth/auth.module";
 import { TourModule } from "../tour/tour.module";
+import { BlogModule } from "../blog/blog.module";
 
 @Module({
   imports: [
@@ -15,6 +16,7 @@ import { TourModule } from "../tour/tour.module";
     AuthModule,
     UserModule,
     TourModule,
+    BlogModule,
   ],
   controllers: [],
   providers: [],

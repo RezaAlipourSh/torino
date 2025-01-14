@@ -11,6 +11,7 @@ import {
 import { BlogStatus } from "../enum/blogStatus.enum";
 import { UserEntity } from "src/module/user/entities/user.entity";
 import { BlogCommentEntity } from "./blogcomments.entity";
+import { Cloud9 } from "aws-sdk";
 
 @Entity(EntityNames.Blog)
 export class BlogEntity {
@@ -24,6 +25,8 @@ export class BlogEntity {
   content: string;
   @Column()
   image: string;
+  @Column({ nullable: true })
+  imageKey: string;
   @Column({ type: "enum", enum: BlogStatus, default: BlogStatus.Draft })
   blogStatus: string;
   @Column({ default: 4 })

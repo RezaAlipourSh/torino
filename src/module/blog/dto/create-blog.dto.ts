@@ -18,7 +18,4 @@ export class CreateBlogDto {
   blogStatus: string;
   @ApiPropertyOptional({ example: 4 })
   readTime: number;
-  @ApiProperty()
-  @IsNumber()
-  authorId: number;
 }
