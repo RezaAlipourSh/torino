@@ -17,6 +17,8 @@ import { RoleAccess } from "src/common/decorator/role.decorator";
 import { Roles } from "src/common/enum/role.enum";
 import { Pagination } from "src/common/decorator/pagination.decorator";
 import { PaginationDto } from "src/common/dto/pagination.dto";
+import { UserFilter } from "./decorator/userFilter.decorator";
+import { UserFilterDto } from "./dto/userFilter.dto";
 
 @Controller("user")
 @ApiTags("User")
@@ -32,8 +34,12 @@ export class UserController {
   @Get()
   @RoleAccess(Roles.Admin)
   @Pagination()
-  findAll(@Query() paginationDto: PaginationDto) {
-    return this.userService.findAll(paginationDto);
+  @UserFilter()
+  findAll(
+    @Query() paginationDto: PaginationDto,
+    @Query() userFilterDto: UserFilterDto
+  ) {
+    return this.userService.findAll(paginationDto, userFilterDto);
   }
 
   // @Get(":id")
