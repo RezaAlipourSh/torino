@@ -9,6 +9,7 @@ import {
   PrimaryGeneratedColumn,
 } from "typeorm";
 import { BlogEntity } from "./blog.entity";
+import { CommentStatus } from "../enum/commentStatus.enum";
 
 @Entity(EntityNames.BlogComment)
 export class BlogCommentEntity {
@@ -20,8 +21,12 @@ export class BlogCommentEntity {
   userId: number;
   @Column()
   comment: string;
+  @Column({ type: "enum", enum: CommentStatus, default: CommentStatus.Pending })
+  commentStatus: string;
   @Column({ nullable: true })
   parentId: number;
+  @CreateDateColumn({ nullable: true })
+  updatedAt: Date;
   @CreateDateColumn()
   createdAt: Date;
   @ManyToOne(() => UserEntity, (user) => user.comments, { onDelete: "CASCADE" })
