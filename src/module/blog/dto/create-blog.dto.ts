@@ -19,3 +19,9 @@ export class CreateBlogDto {
   @ApiPropertyOptional({ example: 4 })
   readTime: number;
 }
+
+export class ChangeBlogStatus {
+  @ApiProperty({ enum: BlogStatus })
+  @IsEnum(BlogStatus)
+  Status: String;
+}
