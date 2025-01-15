@@ -6,6 +6,7 @@ import {
   Patch,
   Param,
   Delete,
+  Query,
 } from "@nestjs/common";
 import { UserService } from "./user.service";
 import { CreateUserDto } from "./dto/create-user.dto";
@@ -14,6 +15,8 @@ import { ApiTags } from "@nestjs/swagger";
 import { AuthDecorator } from "src/common/decorator/auth.decorator";
 import { RoleAccess } from "src/common/decorator/role.decorator";
 import { Roles } from "src/common/enum/role.enum";
+import { Pagination } from "src/common/decorator/pagination.decorator";
+import { PaginationDto } from "src/common/dto/pagination.dto";
 
 @Controller("user")
 @ApiTags("User")
@@ -28,8 +31,9 @@ export class UserController {
 
   @Get()
   @RoleAccess(Roles.Admin)
-  findAll() {
-    return this.userService.findAll();
+  @Pagination()
+  findAll(@Query() paginationDto: PaginationDto) {
+    return this.userService.findAll(paginationDto);
   }
 
   // @Get(":id")

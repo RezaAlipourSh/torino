@@ -38,7 +38,7 @@ export class UserEntity {
   role: string;
   @CreateDateColumn({ nullable: true })
   born: Date;
-  @CreateDateColumn()
+  @CreateDateColumn({ select: false })
   created_at: Date;
   @Column({ nullable: true })
   otpId: number;
