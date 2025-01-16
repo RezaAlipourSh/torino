@@ -1,6 +1,7 @@
-import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
+import { ApiProperty, ApiPropertyOptional, PartialType } from "@nestjs/swagger";
 import { Transform } from "class-transformer";
-import { IsNumber, IsString, Length } from "class-validator";
+import { IsEnum, IsString, Length } from "class-validator";
+import { CommentStatus } from "../enum/commentStatus.enum";
 
 export class CreateCommentDto {
   @ApiProperty()
@@ -13,3 +14,11 @@ export class CreateCommentDto {
   @ApiPropertyOptional()
   parentId: number;
 }
+
+export class ChangeCommentStatus {
+  @ApiProperty({ enum: CommentStatus })
+  @IsEnum(CommentStatus)
+  Status: String;
+}
+
+export class UpdateCommentDto extends PartialType(CreateCommentDto) {}

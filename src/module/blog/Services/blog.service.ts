@@ -31,6 +31,7 @@ import {
 import { isDate, isEnum, isNumber } from "class-validator";
 import { BlogStatus } from "../enum/blogStatus.enum";
 import { EntityNames } from "src/common/enum/entity-name.enum";
+import { CommentStatus } from "../enum/commentStatus.enum";
 
 @Injectable({ scope: Scope.REQUEST })
 export class BlogService {
@@ -120,33 +121,28 @@ export class BlogService {
       where.createdAt = LessThanOrEqual(to);
     }
 
-    const [blogs, count] = await this.blogRepo.findAndCount({
-      where,
-      relations: {
-        author: true,
-        comments: true,
-      },
-      select: {
-        author: {
-          mobile: true,
-          last_name: true,
-          first_name: true,
-          national_code: true,
-          id: true,
-        },
-        comments: {
-          children: true,
-          userId: true,
-          id: true,
-          comment: true,
-          parentId: true,
-          commentStatus: true,
-        },
-      },
-      order: { id: "DESC" },
-      take: limit,
-      skip,
-    });
+    const [blogs, count] = await this.blogRepo
+      .createQueryBuilder(EntityNames.Blog)
+      .leftJoin("blog.author", "author")
+      .leftJoin(
+        "blog.comments",
+        "comments",
+        "comments.commentStatus = :status",
+        { status: "accepted" }
+      )
+      .leftJoin("comments.children", "children")
+      .addSelect([
+        "author.mobile",
+        "author.last_name",
+        "comments.comment",
+        "comments.id",
+        "children",
+      ])
+      .where(where)
+      .orderBy("blog.id", "DESC")
+      .skip(skip)
+      .take(limit)
+      .getManyAndCount();
 
     return {
       pagination: paginationGenerator(count, page, limit),

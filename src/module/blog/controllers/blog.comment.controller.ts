@@ -12,6 +12,7 @@ import {
   MaxFileSizeValidator,
   FileTypeValidator,
   ParseIntPipe,
+  Query,
 } from "@nestjs/common";
 import { ApiConsumes, ApiTags } from "@nestjs/swagger";
 import { FormType } from "src/common/enum/formType.enum";
@@ -23,7 +24,14 @@ import { BlogService } from "../Services/blog.service";
 import { CreateBlogDto } from "../dto/create-blog.dto";
 import { UpdateBlogDto } from "../dto/update-blog.dto";
 import { BlogCommentService } from "../Services/blog.comment.service";
-import { CreateCommentDto } from "../dto/create-comment.dto";
+import {
+  ChangeCommentStatus,
+  CreateCommentDto,
+} from "../dto/create-comment.dto";
+import { PaginationDto } from "src/common/dto/pagination.dto";
+import { commentFilterDto } from "../dto/commentFilter.dto";
+import { Pagination } from "src/common/decorator/pagination.decorator";
+import { CommentFilter } from "../decorator/commentFilter.decorator";
 
 @Controller("comment")
 @ApiTags("Comments")
@@ -40,10 +48,16 @@ export class CommentController {
     return this.commentService.create(commentDto);
   }
 
-  //   @Get()
-  //   findAll() {
-  //     return this.blogService.findAll();
-  //   }
+  @Get()
+  @Pagination()
+  @CommentFilter()
+  @RoleAccess(Roles.Admin)
+  findAll(
+    @Query() paginationDto: PaginationDto,
+    @Query() filterDto: commentFilterDto
+  ) {
+    return this.commentService.findAll(paginationDto, filterDto);
+  }
 
   @Get(":id")
   findOne(@Param("id", ParseIntPipe) id: number) {
@@ -69,8 +83,19 @@ export class CommentController {
   //     return this.blogService.update(id, image, updateBlogDto);
   //   }
 
-  //   @Delete(":id")
-  //   remove(@Param("id", ParseIntPipe) id: number) {
-  //     return this.blogService.remove(id);
-  //   }
+  @Patch("/status/:id")
+  @ApiConsumes(FormType.Urlencoded, FormType.Json)
+  @RoleAccess(Roles.Admin)
+  updateCommentStatus(
+    @Param("id", ParseIntPipe) id: number,
+    @Body() status: ChangeCommentStatus
+  ) {
+    return this.commentService.changeCommentStatus(id, status);
+  }
+
+  @Delete(":id")
+  @ApiConsumes(FormType.Urlencoded, FormType.Json)
+  remove(@Param("id", ParseIntPipe) id: number) {
+    return this.commentService.deleteComment(id);
+  }
 }

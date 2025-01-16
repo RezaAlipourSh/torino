@@ -4,6 +4,7 @@ import {
   Column,
   CreateDateColumn,
   Entity,
+  JoinColumn,
   ManyToOne,
   OneToMany,
   PrimaryGeneratedColumn,
@@ -34,9 +35,10 @@ export class BlogCommentEntity {
   @ManyToOne(() => BlogEntity, (blog) => blog.comments, { onDelete: "CASCADE" })
   blog: BlogEntity;
   @ManyToOne(() => BlogCommentEntity, (parent) => parent.children, {
-    onDelete: "NO ACTION",
+    onDelete: "SET NULL",
   })
   parent: BlogCommentEntity;
   @OneToMany(() => BlogCommentEntity, (children) => children.parent)
+  @JoinColumn({ name: "parent" })
   children: BlogCommentEntity[];
 }
