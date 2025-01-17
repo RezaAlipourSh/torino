@@ -14,7 +14,7 @@ import {
   ParseIntPipe,
   Query,
 } from "@nestjs/common";
-import { ApiConsumes, ApiTags } from "@nestjs/swagger";
+import { ApiConsumes, ApiOperation, ApiTags } from "@nestjs/swagger";
 import { FormType } from "src/common/enum/formType.enum";
 import { UploadFileS3 } from "src/common/interceptors/upload-file.interceptor";
 import { AuthDecorator } from "src/common/decorator/auth.decorator";
@@ -27,6 +27,7 @@ import { BlogCommentService } from "../Services/blog.comment.service";
 import {
   ChangeCommentStatus,
   CreateCommentDto,
+  UpdateCommentDto,
 } from "../dto/create-comment.dto";
 import { PaginationDto } from "src/common/dto/pagination.dto";
 import { commentFilterDto } from "../dto/commentFilter.dto";
@@ -59,29 +60,20 @@ export class CommentController {
     return this.commentService.findAll(paginationDto, filterDto);
   }
 
-  @Get(":id")
+  @Get("/blog/:id")
+  @ApiOperation({ summary: "Get Comments Of Blog By BlogId" })
   findOne(@Param("id", ParseIntPipe) id: number) {
     return this.commentService.findCommentsOfBlogById(id);
   }
 
-  //   @Patch(":id")
-  //   @ApiConsumes(FormType.Multipart)
-  //   @UseInterceptors(UploadFileS3("image"))
-  //   update(
-  //     @UploadedFile(
-  //       new ParseFilePipe({
-  //         validators: [
-  //           new MaxFileSizeValidator({ maxSize: 1 * 1024 * 1024 }),
-  //           new FileTypeValidator({ fileType: "image/(png|jpg|jpeg|webp)" }),
-  //         ],
-  //       })
-  //     )
-  //     image: Express.Multer.File,
-  //     @Param("id", ParseIntPipe) id: number,
-  //     @Body() updateBlogDto: UpdateBlogDto
-  //   ) {
-  //     return this.blogService.update(id, image, updateBlogDto);
-  //   }
+  @Patch("/update/:id")
+  @ApiConsumes(FormType.Urlencoded, FormType.Json)
+  update(
+    @Param("id", ParseIntPipe) id: number,
+    @Body() updateDto: UpdateCommentDto
+  ) {
+    return this.commentService.updateComment(id, updateDto);
+  }
 
   @Patch("/status/:id")
   @ApiConsumes(FormType.Urlencoded, FormType.Json)

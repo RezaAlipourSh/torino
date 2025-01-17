@@ -11,6 +11,7 @@ import { REQUEST } from "@nestjs/core";
 import { Request } from "express";
 import { InjectRepository } from "@nestjs/typeorm";
 import {
+  DeepPartial,
   FindOptionsWhere,
   ILike,
   IsNull,
@@ -22,6 +23,7 @@ import { BlogCommentEntity } from "../entities/blogcomments.entity";
 import {
   ChangeCommentStatus,
   CreateCommentDto,
+  UpdateCommentDto,
 } from "../dto/create-comment.dto";
 import { BlogService } from "./blog.service";
 import { BlogStatus } from "../enum/blogStatus.enum";
@@ -194,48 +196,38 @@ export class BlogCommentService {
     return comments;
   }
 
-  //   async update(
-  //     id: number,
-  //     image: Express.Multer.File,
-  //     updateBlogDto: UpdateBlogDto
-  //   ) {
-  //     const { blogStatus, content, description, readTime, title } = updateBlogDto;
-  //     const blog = await this.findOneById(id);
-  //     const updateObject: DeepPartial<BlogEntity> = {};
-  //     if (image) {
-  //       const { Key, Location } = await this.s3service.uploadFile(
-  //         image,
-  //         "blogImage"
-  //       );
-  //       if (Location) {
-  //         (updateObject.image = Location), (updateObject.imageKey = Key);
-  //         if (blog?.imageKey) {
-  //           await this.s3service.deleteFile(blog?.imageKey);
-  //         }
-  //       }
-  //     }
-  //     if (blogStatus) updateObject.blogStatus = blogStatus;
-  //     if (content) updateObject.content = content;
-  //     if (description) updateObject.description = description;
-  //     if (readTime) updateObject.readTime = readTime;
-  //     if (title) updateObject.title = title;
+  async updateComment(id: number, updateDto: UpdateCommentDto) {
+    const { id: userId } = this.req.user;
+    const { blogId, comment, parentId } = updateDto;
 
-  //     await this.blogRepo.update({ id }, updateObject);
+    const commentData = await this.findOneById(id);
 
-  //     return {
-  //       message: "مقاله مورد نظر با موفقیت ویرایش شد.",
-  //     };
-  //   }
+    const data: DeepPartial<BlogCommentEntity> = {};
 
-  //   async remove(id: number) {
-  //     const blog = await this.findOneById(id);
-  //     await this.s3service.deleteFile(blog.imageKey);
-  //     await this.blogRepo.delete({ id });
+    if (commentData.userId !== userId)
+      throw new ForbiddenException(
+        "شما نمیتوانید کامنت شخص دیگری را ویرایش کنید"
+      );
 
-  //     return {
-  //       message: "مقاله موردنظر حذف شد",
-  //     };
-  //   }
+    if (blogId && !isNaN(blogId)) {
+      data.blogId = blogId;
+    }
+    if (parentId && !isNaN(parentId)) {
+      data.parentId = parentId;
+    }
+
+    if (comment) {
+      data.comment = comment;
+    }
+
+    data.updatedAt = new Date();
+
+    await this.commentRepo.update({ id }, data);
+
+    return {
+      message: "کامنت مورد نظر به درستی ویرایش شد",
+    };
+  }
 
   async findOneById(id: number) {
     const comment = await this.commentRepo.findOneBy({ id });
