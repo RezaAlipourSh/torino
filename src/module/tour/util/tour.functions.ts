@@ -1,4 +1,5 @@
 import { BadRequestException } from "@nestjs/common";
+import { isDate } from "class-validator";
 
 export function validateNumString(value: string): boolean {
   if (parseInt(value) <= 0) {
@@ -31,4 +32,16 @@ export function CountDays(day: number, tourDay: number, tourNight: number) {
     );
   }
   return true;
+}
+
+export function startDateAvailability(startDate: Date, day: number) {
+  const limitDate = new Date();
+  const future = new Date(limitDate);
+  future.setDate(limitDate.getDate() + day);
+
+  if (new Date(startDate) < future)
+    throw new BadRequestException({
+      message: `تاریخ استارت تور باید از ${day} روز آینده باشد`,
+      "تاریخ فعلی طبق سیستم شما ": new Date().toLocaleDateString(),
+    });
 }

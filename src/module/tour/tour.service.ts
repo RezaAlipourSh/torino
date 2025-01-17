@@ -16,6 +16,7 @@ import {
   checkDayNightDifference,
   CountDays,
   returnDay,
+  startDateAvailability,
   validateNumString,
 } from "./util/tour.functions";
 
@@ -44,6 +45,9 @@ export class TourService {
       tourLeaderStatus,
       travelType,
     } = createTourDto;
+
+    //checks tour startdate and make sure that have Enough time for Reservation
+    startDateAvailability(startDate, 6);
 
     if (!night || isNaN(night)) {
       night = day + 1;
@@ -186,12 +190,13 @@ export class TourService {
         tourObject.night = night;
       }
       if (startDate) {
+        startDateAvailability(startDate, 6);
+
         const { returnDate } = returnDay(
           startDate,
           day ?? tour.day,
           night ?? tour.night
         );
-        console.log(returnDate);
 
         tourObject.startDate = startDate;
         tourObject.returnDate = returnDate;
