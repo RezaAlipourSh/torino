@@ -1,6 +1,5 @@
-import { Injectable } from "@nestjs/common";
-import { CreateUserDto } from "./dto/create-user.dto";
-import { UpdateUserDto } from "./dto/update-user.dto";
+import { Inject, Injectable, Scope } from "@nestjs/common";
+import { AddUserBankAccountDto } from "./dto/create-user.dto";
 import { InjectRepository } from "@nestjs/typeorm";
 import { UserEntity } from "./entities/user.entity";
 import {
@@ -18,11 +17,19 @@ import {
 import { UserFilterDto } from "./dto/userFilter.dto";
 import { UserGender, UserRole } from "./enum/user.enum";
 import { isDate, isEmail, isEnum, isMobilePhone } from "class-validator";
+import { REQUEST } from "@nestjs/core";
+import { Request } from "express";
+import { userBankAccountEntity } from "./entities/user-bankAccount.entity";
+import { IbanNumber } from "src/common/enum/bankData.enum";
+import { ValidateBank } from "./util/validateBank.function";
 
-@Injectable()
+@Injectable({ scope: Scope.REQUEST })
 export class UserService {
   constructor(
-    @InjectRepository(UserEntity) private userRepo: Repository<UserEntity>
+    @InjectRepository(UserEntity) private userRepo: Repository<UserEntity>,
+    @InjectRepository(userBankAccountEntity)
+    private userBankRepo: Repository<userBankAccountEntity>,
+    @Inject(REQUEST) private req: Request
   ) {}
 
   // create(createUserDto: CreateUserDto) {
@@ -96,7 +103,7 @@ export class UserService {
         bankAccounts: {
           accountNumber: true,
           cardNumber: true,
-          shabaNumber: true,
+          iban: true,
         },
         blogs: {
           title: true,
@@ -128,4 +135,28 @@ export class UserService {
   // remove(id: number) {
   //   return `This action removes a #${id} user`;
   // }
+
+  async addBankData(dto: AddUserBankAccountDto) {
+    try {
+      const { id: userId } = this.req.user;
+      const { accountNumber, cardNumber, iban } = dto;
+
+      const validateAccountNumber = iban?.slice(-accountNumber?.length || -10);
+      const validateCard = cardNumber?.substring(0, 6);
+      const selectedIban = iban?.substring(4, 7);
+
+      const validatedIban = ValidateBank(IbanNumber, selectedIban, "شماره شبا");
+
+      return {
+        userId,
+        validateAccountNumber,
+        iban,
+        validateCard,
+        selectedIban,
+        validatedIban,
+      };
+    } catch (error) {
+      throw error;
+    }
+  }
 }

@@ -8,8 +8,8 @@ export class userBankAccountEntity {
   id: number;
   @Column()
   userId: number;
-  @Column({ nullable: true, unique: true })
-  shabaNumber: string;
+  @Column({ unique: true })
+  iban: string;
   @Column({ nullable: true, unique: true })
   accountNumber: string;
   @Column({ nullable: true, unique: true })

@@ -1,17 +1,7 @@
-import {
-  Controller,
-  Get,
-  Post,
-  Body,
-  Patch,
-  Param,
-  Delete,
-  Query,
-} from "@nestjs/common";
+import { Controller, Get, Post, Body, Query } from "@nestjs/common";
 import { UserService } from "./user.service";
-import { CreateUserDto } from "./dto/create-user.dto";
-import { UpdateUserDto } from "./dto/update-user.dto";
-import { ApiTags } from "@nestjs/swagger";
+import { AddUserBankAccountDto } from "./dto/create-user.dto";
+import { ApiConsumes, ApiTags } from "@nestjs/swagger";
 import { AuthDecorator } from "src/common/decorator/auth.decorator";
 import { RoleAccess } from "src/common/decorator/role.decorator";
 import { Roles } from "src/common/enum/role.enum";
@@ -19,6 +9,7 @@ import { Pagination } from "src/common/decorator/pagination.decorator";
 import { PaginationDto } from "src/common/dto/pagination.dto";
 import { UserFilter } from "./decorator/userFilter.decorator";
 import { UserFilterDto } from "./dto/userFilter.dto";
+import { FormType } from "src/common/enum/formType.enum";
 
 @Controller("user")
 @ApiTags("User")
@@ -40,6 +31,12 @@ export class UserController {
     @Query() userFilterDto: UserFilterDto
   ) {
     return this.userService.findAll(paginationDto, userFilterDto);
+  }
+
+  @Post("/AddBankData")
+  @ApiConsumes(FormType.Urlencoded, FormType.Json)
+  AddBankData(@Body() dto: AddUserBankAccountDto) {
+    return this.userService.addBankData(dto);
   }
 
   // @Get(":id")
