@@ -1,4 +1,4 @@
-import { Inject, Injectable, Scope } from "@nestjs/common";
+import { BadRequestException, Inject, Injectable, Scope } from "@nestjs/common";
 import { AddUserBankAccountDto } from "./dto/create-user.dto";
 import { InjectRepository } from "@nestjs/typeorm";
 import { UserEntity } from "./entities/user.entity";
@@ -20,8 +20,11 @@ import { isDate, isEmail, isEnum, isMobilePhone } from "class-validator";
 import { REQUEST } from "@nestjs/core";
 import { Request } from "express";
 import { userBankAccountEntity } from "./entities/user-bankAccount.entity";
-import { IbanNumber } from "src/common/enum/bankData.enum";
-import { ValidateBank } from "./util/validateBank.function";
+import { ValidateBankType } from "src/common/enum/bankData.enum";
+import {
+  ValidateBankAccount,
+  ValidateIbanOrBankCard,
+} from "./util/validateBank.function";
 
 @Injectable({ scope: Scope.REQUEST })
 export class UserService {
@@ -140,23 +143,68 @@ export class UserService {
     try {
       const { id: userId } = this.req.user;
       const { accountNumber, cardNumber, iban } = dto;
+      let validCard: string;
 
-      const validateAccountNumber = iban?.slice(-accountNumber?.length || -10);
-      const validateCard = cardNumber?.substring(0, 6);
-      const selectedIban = iban?.substring(4, 7);
+      const { validatedIban } = ValidateIbanOrBankCard(
+        iban,
+        ValidateBankType.Iban
+      );
 
-      const validatedIban = ValidateBank(IbanNumber, selectedIban, "شماره شبا");
+      if (accountNumber && accountNumber.length > 0) {
+        ValidateBankAccount(accountNumber, iban);
+      }
+
+      if (cardNumber && cardNumber.length == 16) {
+        const { validatedCard } = ValidateIbanOrBankCard(
+          cardNumber,
+          ValidateBankType.Card
+        );
+        if (validatedCard !== validatedIban)
+          throw new BadRequestException(
+            "شماره کارت وارد شده به این شماره شبا تعلق ندارد"
+          );
+        validCard = validatedCard;
+      }
+
+      const bankAccount = this.userBankRepo.create({
+        userId,
+        iban,
+        bank: validatedIban,
+        cardNumber: cardNumber ?? null,
+        accountNumber: accountNumber ?? null,
+      });
+
+      await this.userBankRepo.save(bankAccount);
 
       return {
-        userId,
-        validateAccountNumber,
+        accountNumber,
+        cardNumber,
         iban,
-        validateCard,
-        selectedIban,
-        validatedIban,
+        bank: validatedIban,
+        message: "اطلاعات بانکی شما به درستی اضافه شدند",
       };
     } catch (error) {
       throw error;
     }
+  }
+
+  async getUserBankData() {
+    const { id: userId } = this.req.user;
+
+    const [data, count] = await this.userBankRepo.findAndCount({
+      where: { userId },
+      select: {
+        id: true,
+        bank: true,
+        iban: true,
+        cardNumber: true,
+      },
+      order: { id: "DESC" },
+    });
+
+    return {
+      count,
+      data,
+    };
   }
 }

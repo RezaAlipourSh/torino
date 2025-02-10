@@ -67,3 +67,8 @@ export enum IbanNumber {
   "بانک قرض الحسنه رسالت" = "070",
   "بانک کوثر" = "073",
 }
+
+export enum ValidateBankType {
+  Card = "card",
+  Iban = "iban",
+}

@@ -44,6 +44,11 @@ export class UserController {
   //   return this.userService.findOne(+id);
   // }
 
+  @Get("/UserBankData")
+  GetUserBankData() {
+    return this.userService.getUserBankData();
+  }
+
   // @Patch(":id")
   // update(@Param("id") id: string, @Body() updateUserDto: UpdateUserDto) {
   //   return this.userService.update(+id, updateUserDto);
