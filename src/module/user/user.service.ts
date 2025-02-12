@@ -166,6 +166,8 @@ export class UserService {
         validCard = validatedCard;
       }
 
+      await this.AddBankInfoToUser(userId);
+
       const bankAccount = this.userBankRepo.create({
         userId,
         iban,
@@ -207,4 +209,22 @@ export class UserService {
       data,
     };
   }
+
+  async getUserBankDataByAdmin(userId: number) {}
+
+  async AddBankInfoToUser(id: number) {
+    const user = await this.userRepo.findOneBy({ id });
+
+    if (user.bankInfo >= 5 || user.bankInfo < 0) {
+      throw new BadRequestException(
+        `تعداد اطلاعات بانک نباید بیشتر از 5 یا منفی باشد . تعداد فعلی ${user.bankInfo}`
+      );
+    }
+
+    user.bankInfo += 1;
+
+    await this.userRepo.save(user);
+  }
+
+  // async checkExistBankInfo
 }

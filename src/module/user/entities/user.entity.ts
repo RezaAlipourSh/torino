@@ -1,5 +1,6 @@
 import { EntityNames } from "src/common/enum/entity-name.enum";
 import {
+  BeforeUpdate,
   Column,
   CreateDateColumn,
   Entity,
@@ -13,6 +14,7 @@ import { UserGender, UserRole } from "../enum/user.enum";
 import { userBankAccountEntity } from "./user-bankAccount.entity";
 import { BlogEntity } from "src/module/blog/entities/blog.entity";
 import { BlogCommentEntity } from "src/module/blog/entities/blogcomments.entity";
+import { BadRequestException } from "@nestjs/common";
 
 @Entity(EntityNames.User)
 export class UserEntity {
@@ -34,6 +36,8 @@ export class UserEntity {
   mobile_verify: boolean;
   @Column({ type: "enum", enum: UserGender, default: UserGender.Man })
   Gender: string;
+  @Column({ default: 0 })
+  bankInfo: number;
   @Column({ type: "enum", enum: UserRole, default: UserRole.User })
   role: string;
   @CreateDateColumn({ nullable: true })
