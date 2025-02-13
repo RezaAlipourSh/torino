@@ -1,4 +1,13 @@
-import { Controller, Get, Post, Body, Query } from "@nestjs/common";
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Query,
+  ParseIntPipe,
+  Param,
+  Delete,
+} from "@nestjs/common";
 import { UserService } from "./user.service";
 import { AddUserBankAccountDto } from "./dto/create-user.dto";
 import { ApiConsumes, ApiTags } from "@nestjs/swagger";
@@ -49,13 +58,19 @@ export class UserController {
     return this.userService.getUserBankData();
   }
 
+  @Get("/UserBankDataByAdmin/:id")
+  @RoleAccess(Roles.Admin)
+  GetUserBankDataByAdmin(@Param("id", ParseIntPipe) id: number) {
+    return this.userService.getUserBankDataByAdmin(id);
+  }
+
   // @Patch(":id")
   // update(@Param("id") id: string, @Body() updateUserDto: UpdateUserDto) {
   //   return this.userService.update(+id, updateUserDto);
   // }
 
-  // @Delete(":id")
-  // remove(@Param("id") id: string) {
-  //   return this.userService.remove(+id);
-  // }
+  @Delete("/userBankData/:id")
+  remove(@Param("id", ParseIntPipe) id: number) {
+    return this.userService.removeUserBankData(id);
+  }
 }

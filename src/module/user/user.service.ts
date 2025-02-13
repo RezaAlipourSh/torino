@@ -1,4 +1,12 @@
-import { BadRequestException, Inject, Injectable, Scope } from "@nestjs/common";
+import {
+  BadRequestException,
+  ConflictException,
+  ForbiddenException,
+  Inject,
+  Injectable,
+  NotFoundException,
+  Scope,
+} from "@nestjs/common";
 import { AddUserBankAccountDto } from "./dto/create-user.dto";
 import { InjectRepository } from "@nestjs/typeorm";
 import { UserEntity } from "./entities/user.entity";
@@ -135,6 +143,12 @@ export class UserService {
   //   return `This action updates a #${id} user`;
   // }
 
+  async getBankData(id: number) {
+    const bankData = await this.userBankRepo.findOneBy({ id });
+    if (!bankData) throw new NotFoundException("اطلاعات مالی یافت نشد");
+
+    return bankData;
+  }
   // remove(id: number) {
   //   return `This action removes a #${id} user`;
   // }
@@ -145,16 +159,19 @@ export class UserService {
       const { accountNumber, cardNumber, iban } = dto;
       let validCard: string;
 
+      await this.checkExistBankInfo(iban, ValidateBankType.Iban);
       const { validatedIban } = ValidateIbanOrBankCard(
         iban,
         ValidateBankType.Iban
       );
 
       if (accountNumber && accountNumber.length > 0) {
+        await this.checkExistBankInfo(accountNumber, ValidateBankType.Account);
         ValidateBankAccount(accountNumber, iban);
       }
 
       if (cardNumber && cardNumber.length == 16) {
+        await this.checkExistBankInfo(cardNumber, ValidateBankType.Card);
         const { validatedCard } = ValidateIbanOrBankCard(
           cardNumber,
           ValidateBankType.Card
@@ -210,7 +227,23 @@ export class UserService {
     };
   }
 
-  async getUserBankDataByAdmin(userId: number) {}
+  async getUserBankDataByAdmin(userId: number) {
+    const [data, count] = await this.userBankRepo.findAndCount({
+      where: { userId },
+      select: {
+        id: true,
+        bank: true,
+        iban: true,
+        cardNumber: true,
+      },
+      order: { id: "DESC" },
+    });
+
+    return {
+      count,
+      data,
+    };
+  }
 
   async AddBankInfoToUser(id: number) {
     const user = await this.userRepo.findOneBy({ id });
@@ -226,5 +259,51 @@ export class UserService {
     await this.userRepo.save(user);
   }
 
-  // async checkExistBankInfo
+  async RemoveBankInfoFromUser(id: number) {
+    const user = await this.userRepo.findOneBy({ id });
+
+    if (user.bankInfo > 5 || user.bankInfo <= 0) {
+      throw new BadRequestException(
+        `تعداد اطلاعات بانک نباید بیشتر از 5 یا منفی باشد . تعداد فعلی ${user.bankInfo}`
+      );
+    }
+
+    user.bankInfo -= 1;
+
+    await this.userRepo.save(user);
+  }
+
+  async checkExistBankInfo(data: string, type: ValidateBankType) {
+    if (type === ValidateBankType.Account) {
+      const account = await this.userBankRepo.findOneBy({
+        accountNumber: data,
+      });
+      if (account) throw new ConflictException("شماره حساب قبلا ثبت شده است");
+    } else if (type === ValidateBankType.Card) {
+      const account = await this.userBankRepo.findOneBy({ cardNumber: data });
+      if (account) throw new ConflictException("شماره کارت قبلا ثبت شده است");
+    } else if (type === ValidateBankType.Iban) {
+      const account = await this.userBankRepo.findOneBy({ iban: data });
+      if (account) throw new ConflictException("شماره شبا قبلا ثبت شده است");
+    } else throw new BadRequestException("مقادیر را به درستی ارسال کنید");
+  }
+
+  async removeUserBankData(id: number) {
+    const { id: userId } = this.req.user;
+    const bankData = await this.getBankData(id);
+
+    if (bankData.userId !== userId) {
+      throw new ForbiddenException(
+        "شما فقط میتوانید اطلاعات مالی مربوط به خود را حذف نمایید"
+      );
+    }
+
+    await this.RemoveBankInfoFromUser(userId);
+
+    await this.userBankRepo.remove(bankData);
+
+    return {
+      message: " اطلاعات مالی به درستی حذف شد",
+    };
+  }
 }

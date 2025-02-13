@@ -71,4 +71,5 @@ export enum IbanNumber {
 export enum ValidateBankType {
   Card = "card",
   Iban = "iban",
+  Account = "account",
 }
