@@ -11,6 +11,7 @@ import { AddUserBankAccountDto } from "./dto/create-user.dto";
 import { InjectRepository } from "@nestjs/typeorm";
 import { UserEntity } from "./entities/user.entity";
 import {
+  DeepPartial,
   FindOptionsWhere,
   ILike,
   LessThanOrEqual,
@@ -33,6 +34,7 @@ import {
   ValidateBankAccount,
   ValidateIbanOrBankCard,
 } from "./util/validateBank.function";
+import { UpdateUserBankAccountDto } from "./dto/update-user.dto";
 
 @Injectable({ scope: Scope.REQUEST })
 export class UserService {
@@ -139,9 +141,76 @@ export class UserService {
   //   return `This action returns a #${id} user`;
   // }
 
-  // update(id: number, updateUserDto: UpdateUserDto) {
-  //   return `This action updates a #${id} user`;
-  // }
+  async updateBankData(id: number, updateBankDto: UpdateUserBankAccountDto) {
+    const { id: userId } = this.req.user;
+    const bankDto = await this.getBankData(id);
+    if (bankDto.userId !== userId)
+      throw new ForbiddenException(
+        "شما فقط قادر به ویرایش اطلاعات مالی مربوط به خود هستید"
+      );
+
+    const { accountNumber, cardNumber, iban } = updateBankDto;
+
+    const newObject: DeepPartial<userBankAccountEntity> = {};
+
+    if (iban) {
+      await this.checkExistBankInfo(iban, ValidateBankType.Iban);
+      const { validatedIban } = ValidateIbanOrBankCard(
+        iban,
+        ValidateBankType.Iban
+      );
+      ValidateBankAccount(bankDto.accountNumber, iban);
+      newObject.iban = iban;
+      newObject.bank = validatedIban;
+    }
+    if (accountNumber) {
+      await this.checkExistBankInfo(accountNumber, ValidateBankType.Account);
+      if (iban) {
+        ValidateBankAccount(accountNumber, iban);
+      } else {
+        ValidateBankAccount(accountNumber, bankDto.iban);
+      }
+      newObject.accountNumber = accountNumber;
+    }
+    if (cardNumber) {
+      await this.checkExistBankInfo(cardNumber, ValidateBankType.Card);
+      if (iban) {
+        const { validatedIban } = ValidateIbanOrBankCard(
+          iban,
+          ValidateBankType.Iban
+        );
+        const { validatedCard } = ValidateIbanOrBankCard(
+          cardNumber,
+          ValidateBankType.Card
+        );
+        if (validatedCard !== validatedIban)
+          throw new BadRequestException(
+            "شماره کارت وارد شده به این شماره شبا تعلق ندارد"
+          );
+      } else {
+        const { validatedIban } = ValidateIbanOrBankCard(
+          bankDto.iban,
+          ValidateBankType.Iban
+        );
+        const { validatedCard } = ValidateIbanOrBankCard(
+          cardNumber,
+          ValidateBankType.Card
+        );
+        if (validatedCard !== validatedIban)
+          throw new BadRequestException(
+            "شماره کارت وارد شده به  شماره شبا ثبت شده قبلی تعلق ندارد"
+          );
+      }
+
+      newObject.cardNumber = cardNumber;
+    }
+
+    await this.userBankRepo.update({ id }, newObject);
+
+    return {
+      message: "اطلاعات مالی با موفقیت ویرایش شد ",
+    };
+  }
 
   async getBankData(id: number) {
     const bankData = await this.userBankRepo.findOneBy({ id });
@@ -149,6 +218,7 @@ export class UserService {
 
     return bankData;
   }
+
   // remove(id: number) {
   //   return `This action removes a #${id} user`;
   // }
@@ -279,12 +349,15 @@ export class UserService {
         accountNumber: data,
       });
       if (account) throw new ConflictException("شماره حساب قبلا ثبت شده است");
+      return true;
     } else if (type === ValidateBankType.Card) {
       const account = await this.userBankRepo.findOneBy({ cardNumber: data });
       if (account) throw new ConflictException("شماره کارت قبلا ثبت شده است");
+      return true;
     } else if (type === ValidateBankType.Iban) {
       const account = await this.userBankRepo.findOneBy({ iban: data });
       if (account) throw new ConflictException("شماره شبا قبلا ثبت شده است");
+      return true;
     } else throw new BadRequestException("مقادیر را به درستی ارسال کنید");
   }
 

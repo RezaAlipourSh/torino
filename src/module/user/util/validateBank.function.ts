@@ -8,7 +8,11 @@ import {
 export function ValidateBankAccount(accountNumber: string, iban: string) {
   const validateAccountNumber = iban?.slice(-accountNumber?.length);
   if (validateAccountNumber !== accountNumber) {
-    throw new BadRequestException("شماره حساب این شماره شبا اشتباه می باشد");
+    throw new BadRequestException({
+      message: "شماره حساب به این شماره شبا تعلق ندارد",
+      iban,
+      accountNumber,
+    });
   }
   return true;
 }

@@ -1,4 +1,5 @@
-import { ApiPropertyOptional } from "@nestjs/swagger";
+import { PartialType } from "@nestjs/mapped-types";
+import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
 
 import {
   IsNumberString,
@@ -11,7 +12,7 @@ import {
 export class CreateUserDto {}
 
 export class AddUserBankAccountDto {
-  @ApiPropertyOptional({
+  @ApiProperty({
     example: "IR230215974165082937145421",
     description:
       "به صورت نمونه مقابل اطلاعات را وارد نمایید - IR230215974165082937145421 ",
@@ -22,7 +23,8 @@ export class AddUserBankAccountDto {
   @IsString()
   @Length(26, 26, { message: "طول شماره شبا وارد شده صحیح نمی باشد " })
   iban: string;
-  @ApiPropertyOptional({ nullable: true })
+
+  @ApiPropertyOptional()
   @IsString()
   @IsOptional()
   @IsNumberString(
@@ -31,7 +33,8 @@ export class AddUserBankAccountDto {
   )
   @Length(8, 16, { message: "شماره حساب خود را به درستی وارد نمایید" })
   accountNumber: string;
-  @ApiPropertyOptional({ nullable: true })
+
+  @ApiPropertyOptional()
   @IsOptional()
   @IsNumberString(
     {},

@@ -7,6 +7,7 @@ import {
   ParseIntPipe,
   Param,
   Delete,
+  Patch,
 } from "@nestjs/common";
 import { UserService } from "./user.service";
 import { AddUserBankAccountDto } from "./dto/create-user.dto";
@@ -19,6 +20,7 @@ import { PaginationDto } from "src/common/dto/pagination.dto";
 import { UserFilter } from "./decorator/userFilter.decorator";
 import { UserFilterDto } from "./dto/userFilter.dto";
 import { FormType } from "src/common/enum/formType.enum";
+import { UpdateUserBankAccountDto } from "./dto/update-user.dto";
 
 @Controller("user")
 @ApiTags("User")
@@ -64,10 +66,14 @@ export class UserController {
     return this.userService.getUserBankDataByAdmin(id);
   }
 
-  // @Patch(":id")
-  // update(@Param("id") id: string, @Body() updateUserDto: UpdateUserDto) {
-  //   return this.userService.update(+id, updateUserDto);
-  // }
+  @Patch("/userBankData/:id")
+  @ApiConsumes(FormType.Urlencoded, FormType.Json)
+  update(
+    @Param("id", ParseIntPipe) id: number,
+    @Body() updateBankDto: UpdateUserBankAccountDto
+  ) {
+    return this.userService.updateBankData(id, updateBankDto);
+  }
 
   @Delete("/userBankData/:id")
   remove(@Param("id", ParseIntPipe) id: number) {
