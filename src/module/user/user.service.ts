@@ -159,7 +159,9 @@ export class UserService {
         iban,
         ValidateBankType.Iban
       );
-      ValidateBankAccount(bankDto.accountNumber, iban);
+      if (bankDto.accountNumber) {
+        ValidateBankAccount(bankDto.accountNumber, iban);
+      }
       newObject.iban = iban;
       newObject.bank = validatedIban;
     }

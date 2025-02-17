@@ -1,7 +1,13 @@
 import { PartialType } from "@nestjs/mapped-types";
 import { AddUserBankAccountDto, CreateUserDto } from "./create-user.dto";
 import { ApiPropertyOptional } from "@nestjs/swagger";
-import { IsNumberString, IsString, Length, Matches } from "class-validator";
+import {
+  IsNumberString,
+  IsOptional,
+  IsString,
+  Length,
+  Matches,
+} from "class-validator";
 
 export class UpdateUserDto extends PartialType(CreateUserDto) {}
 
@@ -11,6 +17,7 @@ export class UpdateUserBankAccountDto {
     description:
       "به صورت نمونه مقابل اطلاعات را وارد نمایید - IR230215974165082937145421 ",
   })
+  @IsOptional()
   @Matches(/^IR[0-9a-zA-Z]{24}$/, {
     message: "شماره شبا را به صورت صحیح و  عبارت IR  در اول آن وارد کنید",
   })
@@ -19,7 +26,7 @@ export class UpdateUserBankAccountDto {
   iban: string;
 
   @ApiPropertyOptional()
-  @IsString()
+  @IsOptional()
   @IsNumberString(
     {},
     { message: "مقدار شماره حساب را به صورت رشته ای از اعداد وارد نمایید" }
@@ -28,6 +35,7 @@ export class UpdateUserBankAccountDto {
   accountNumber: string;
 
   @ApiPropertyOptional()
+  @IsOptional()
   @IsNumberString(
     {},
     { message: "مقدار شماره کارت را به صورت رشته ای از اعداد وارد نمایید" }
