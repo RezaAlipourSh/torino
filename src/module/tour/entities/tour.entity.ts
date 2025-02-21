@@ -3,6 +3,8 @@ import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from "typeorm";
 import { VehicleType } from "../enums/vehicle.enums";
 import { TourLeaderStatus } from "../enums/tourLeader.enum";
 import { TourPlanEntity } from "./tourPlan.entity";
+import { TourPassengersEntity } from "./tourpassengers.entity";
+import { BasketEntity } from "src/module/basket/entities/basket.entity";
 
 @Entity(EntityNames.Tour)
 export class TourEntity {
@@ -46,4 +48,8 @@ export class TourEntity {
   tourLeaderStatus: string;
   @OneToMany(() => TourPlanEntity, (plan) => plan.tour)
   plans: TourPlanEntity[];
+  @OneToMany(() => TourPassengersEntity, (passenger) => passenger.tour)
+  passengers: TourPassengersEntity[];
+  @OneToMany(() => BasketEntity, (basket) => basket.tour)
+  baskets: BasketEntity[];
 }

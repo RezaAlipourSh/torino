@@ -4,6 +4,8 @@ export enum EntityNames {
   UserBankAccount = "user_bank_account",
   Tour = "tour",
   TourPlan = "tour_plan",
+  TourPassengers = "tour_passengers",
   Blog = "blog",
   BlogComment = "blog_comment",
+  Basket = "basket",
 }

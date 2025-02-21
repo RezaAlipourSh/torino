@@ -15,6 +15,8 @@ import { userBankAccountEntity } from "./user-bankAccount.entity";
 import { BlogEntity } from "src/module/blog/entities/blog.entity";
 import { BlogCommentEntity } from "src/module/blog/entities/blogcomments.entity";
 import { BadRequestException } from "@nestjs/common";
+import { TourPassengersEntity } from "src/module/tour/entities/tourpassengers.entity";
+import { BasketEntity } from "src/module/basket/entities/basket.entity";
 
 @Entity(EntityNames.User)
 export class UserEntity {
@@ -55,4 +57,8 @@ export class UserEntity {
   blogs: BlogEntity[];
   @OneToMany(() => BlogCommentEntity, (comment) => comment.user)
   comments: BlogCommentEntity[];
+  @OneToMany(() => TourPassengersEntity, (passenger) => passenger.user)
+  companions: TourPassengersEntity[];
+  @OneToMany(() => BasketEntity, (basket) => basket.user)
+  basket: BasketEntity[];
 }
