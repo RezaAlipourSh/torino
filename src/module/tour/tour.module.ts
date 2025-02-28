@@ -10,5 +10,6 @@ import { AuthModule } from "../auth/auth.module";
   imports: [AuthModule, TypeOrmModule.forFeature([TourEntity, TourPlanEntity])],
   controllers: [TourController],
   providers: [TourService],
+  exports: [TypeOrmModule, TourService],
 })
 export class TourModule {}

@@ -14,8 +14,8 @@ export class BasketEntity {
   @Column()
   count: number;
   @Column({ default: false })
-  forOtherPesron: boolean;
-  @Column({ type: "array" })
+  withMe: boolean;
+  @Column("text", { array: true, nullable: true })
   companions: string[];
   @ManyToOne(() => TourEntity, (tour) => tour.baskets, { onDelete: "CASCADE" })
   tour: TourEntity;
