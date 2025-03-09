@@ -8,4 +8,6 @@ export enum EntityNames {
   Blog = "blog",
   BlogComment = "blog_comment",
   Basket = "basket",
+  Reserve = "reserve",
+  Payment = "payment",
 }

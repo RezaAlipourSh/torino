@@ -7,6 +7,9 @@ import { AuthModule } from "../auth/auth.module";
 import { TourModule } from "../tour/tour.module";
 import { BlogModule } from "../blog/blog.module";
 import { BasketModule } from "../basket/basket.module";
+import { PaymentModule } from "../payment/payment.module";
+import { ReserveModule } from "../reserve/reserve.module";
+import { HttpApimodule } from "../http/http.module";
 
 @Module({
   imports: [
@@ -19,6 +22,9 @@ import { BasketModule } from "../basket/basket.module";
     TourModule,
     BlogModule,
     BasketModule,
+    PaymentModule,
+    ReserveModule,
+    HttpApimodule,
   ],
   controllers: [],
   providers: [],

@@ -1,6 +1,5 @@
 import { EntityNames } from "src/common/enum/entity-name.enum";
 import {
-  BeforeUpdate,
   Column,
   CreateDateColumn,
   Entity,
@@ -14,9 +13,10 @@ import { UserGender, UserRole } from "../enum/user.enum";
 import { userBankAccountEntity } from "./user-bankAccount.entity";
 import { BlogEntity } from "src/module/blog/entities/blog.entity";
 import { BlogCommentEntity } from "src/module/blog/entities/blogcomments.entity";
-import { BadRequestException } from "@nestjs/common";
 import { TourPassengersEntity } from "src/module/tour/entities/tourpassengers.entity";
 import { BasketEntity } from "src/module/basket/entities/basket.entity";
+import { ReserveEntity } from "src/module/reserve/entities/reserve.entity";
+import { PaymentEntity } from "src/module/payment/entities/payment.entity";
 
 @Entity(EntityNames.User)
 export class UserEntity {
@@ -61,4 +61,8 @@ export class UserEntity {
   companions: TourPassengersEntity[];
   @OneToMany(() => BasketEntity, (basket) => basket.user)
   basket: BasketEntity[];
+  @OneToMany(() => ReserveEntity, (reserve) => reserve.user)
+  reserves: ReserveEntity[];
+  @OneToMany(() => PaymentEntity, (payment) => payment.user)
+  payments: PaymentEntity[];
 }
