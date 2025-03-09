@@ -2,6 +2,7 @@ namespace NodeJS {
   interface ProcessEnv {
     //app
     PORT: number;
+    HOST: string;
     //db
     DB_PORT: number;
     DB_NAME: string;
@@ -16,5 +17,11 @@ namespace NodeJS {
     S3_SECRET_KEY: string;
     S3_BUCKET_NAME: string;
     S3_ENDPOINT: string;
+
+    //ZarinPal
+    ZARINPAL_VERIFY_URL: string;
+    ZARINPAL_REQUEST_URL: string;
+    ZARINPAL_MERCHANT_ID: string;
+    ZARINPAL_GATEWAY_URL: string;
   }
 }

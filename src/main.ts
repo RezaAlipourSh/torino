@@ -14,10 +14,10 @@ async function bootstrap() {
     })
   );
   SwaggerConfig(app);
-  const { PORT, DB_HOST } = process.env;
+  const { PORT, HOST } = process.env;
   await app.listen(PORT, () => {
-    console.log(`http://${DB_HOST}:${PORT}`);
-    console.log(`http://${DB_HOST}:${PORT}/swagger`);
+    console.log(`http://${HOST}:${PORT}`);
+    console.log(`http://${HOST}:${PORT}/swagger`);
   });
 }
 bootstrap();
