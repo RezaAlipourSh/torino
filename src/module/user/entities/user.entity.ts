@@ -17,6 +17,7 @@ import { TourPassengersEntity } from "src/module/tour/entities/tourpassengers.en
 import { BasketEntity } from "src/module/basket/entities/basket.entity";
 import { ReserveEntity } from "src/module/reserve/entities/reserve.entity";
 import { PaymentEntity } from "src/module/payment/entities/payment.entity";
+import { CategoryEntity } from "src/module/category/entities/category.entity";
 
 @Entity(EntityNames.User)
 export class UserEntity {
@@ -65,4 +66,6 @@ export class UserEntity {
   reserves: ReserveEntity[];
   @OneToMany(() => PaymentEntity, (payment) => payment.user)
   payments: PaymentEntity[];
+  @OneToMany(() => CategoryEntity, (category) => category.creator)
+  createdCategory: CategoryEntity[];
 }

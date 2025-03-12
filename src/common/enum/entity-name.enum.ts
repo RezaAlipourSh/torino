@@ -10,4 +10,5 @@ export enum EntityNames {
   Basket = "basket",
   Reserve = "reserve",
   Payment = "payment",
+  Category = "category",
 }
