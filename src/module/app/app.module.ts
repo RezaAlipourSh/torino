@@ -10,6 +10,7 @@ import { BasketModule } from "../basket/basket.module";
 import { PaymentModule } from "../payment/payment.module";
 import { ReserveModule } from "../reserve/reserve.module";
 import { HttpApimodule } from "../http/http.module";
+import { CategoryModule } from "../category/category.module";
 
 @Module({
   imports: [
@@ -24,6 +25,7 @@ import { HttpApimodule } from "../http/http.module";
     BasketModule,
     PaymentModule,
     ReserveModule,
+    CategoryModule,
     HttpApimodule,
   ],
   controllers: [],

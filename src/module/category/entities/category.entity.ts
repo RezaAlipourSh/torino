@@ -2,6 +2,7 @@ import { EntityNames } from "src/common/enum/entity-name.enum";
 import { UserEntity } from "src/module/user/entities/user.entity";
 import {
   Column,
+  CreateDateColumn,
   Entity,
   ManyToOne,
   OneToMany,
@@ -22,6 +23,10 @@ export class CategoryEntity {
   parentId: number;
   @Column({ nullable: true })
   creatorId: number;
+  @Column({ default: true })
+  isActive: boolean;
+  @CreateDateColumn()
+  createdAt: Date;
   @ManyToOne(() => CategoryEntity, (parent) => parent.children, {
     onDelete: "CASCADE",
   })
