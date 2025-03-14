@@ -28,10 +28,9 @@ import {
   paginationGenerator,
   paginationSolver,
 } from "src/common/utility/paginatiion.util";
-import { isDate, isEnum, isNumber } from "class-validator";
+import { isDate, isEnum } from "class-validator";
 import { BlogStatus } from "../enum/blogStatus.enum";
 import { EntityNames } from "src/common/enum/entity-name.enum";
-import { CommentStatus } from "../enum/commentStatus.enum";
 
 @Injectable({ scope: Scope.REQUEST })
 export class BlogService {

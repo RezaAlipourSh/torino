@@ -11,7 +11,6 @@ import {
 import { BlogStatus } from "../enum/blogStatus.enum";
 import { UserEntity } from "src/module/user/entities/user.entity";
 import { BlogCommentEntity } from "./blogcomments.entity";
-import { Cloud9 } from "aws-sdk";
 
 @Entity(EntityNames.Blog)
 export class BlogEntity {
@@ -35,7 +34,7 @@ export class BlogEntity {
   authorId: number;
   @CreateDateColumn()
   createdAt: Date;
-  @UpdateDateColumn({ nullable: true })
+  @UpdateDateColumn()
   updatedAt: Date;
   @ManyToOne(() => UserEntity, (user) => user.blogs, { onDelete: "CASCADE" })
   author: UserEntity;
