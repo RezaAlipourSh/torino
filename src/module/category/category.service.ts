@@ -148,7 +148,7 @@ export class CategoryService {
   async delete(id: number) {
     const category = await this.findOneById(ToNumber(id));
     await this.s3Service.deleteFile(category.imageKey);
-    await this.categoryRepo.delete(category);
+    await this.categoryRepo.remove(category);
     return {
       message: "دسته بندی با موفقیت حذف شد",
     };
