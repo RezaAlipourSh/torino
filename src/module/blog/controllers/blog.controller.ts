@@ -73,17 +73,18 @@ export class BlogController {
   @ApiConsumes(FormType.Multipart)
   @UseInterceptors(UploadFileS3("image"))
   update(
+    @Param("id", ParseIntPipe) id: number,
+    @Body() updateBlogDto: UpdateBlogDto,
     @UploadedFile(
       new ParseFilePipe({
         validators: [
           new MaxFileSizeValidator({ maxSize: 1 * 1024 * 1024 }),
           new FileTypeValidator({ fileType: "image/(png|jpg|jpeg|webp)" }),
         ],
+        fileIsRequired: false,
       })
     )
-    image: Express.Multer.File,
-    @Param("id", ParseIntPipe) id: number,
-    @Body() updateBlogDto: UpdateBlogDto
+    image?: Express.Multer.File
   ) {
     return this.blogService.update(id, image, updateBlogDto);
   }
