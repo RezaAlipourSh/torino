@@ -15,6 +15,7 @@ export const BlogFilter = () =>
     }),
     ApiQuery({ name: "readTime", type: Number, required: false }),
     ApiQuery({ name: "authorId", type: Number, required: false }),
+    ApiQuery({ name: "categoryId", type: Number, required: false }),
     ApiQuery({
       name: "from_date",
       type: String,

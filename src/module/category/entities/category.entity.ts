@@ -1,4 +1,5 @@
 import { EntityNames } from "src/common/enum/entity-name.enum";
+import { BlogEntity } from "src/module/blog/entities/blog.entity";
 import { UserEntity } from "src/module/user/entities/user.entity";
 import {
   Column,
@@ -37,4 +38,6 @@ export class CategoryEntity {
     onDelete: "SET NULL",
   })
   creator: UserEntity;
+  @OneToMany(() => BlogEntity, (blog) => blog.category)
+  blogs: BlogEntity[];
 }

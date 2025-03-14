@@ -31,18 +31,29 @@ import {
 import { isDate, isEnum } from "class-validator";
 import { BlogStatus } from "../enum/blogStatus.enum";
 import { EntityNames } from "src/common/enum/entity-name.enum";
+import { CategoryService } from "src/module/category/category.service";
+import { ToNumber } from "src/common/utility/Number.util";
 
 @Injectable({ scope: Scope.REQUEST })
 export class BlogService {
   constructor(
     @InjectRepository(BlogEntity) private blogRepo: Repository<BlogEntity>,
     @Inject(REQUEST) private req: Request,
-    private s3service: S3Service
+    private s3service: S3Service,
+    private categoryService: CategoryService
   ) {}
   async create(image: Express.Multer.File, createBlogDto: CreateBlogDto) {
     const { id } = this.req.user;
-    const { blogStatus, content, description, readTime, title } = createBlogDto;
+    const { blogStatus, content, description, readTime, title, categoryId } =
+      createBlogDto;
     await this.findOneByTitle(title);
+    const category = await this.categoryService.findOneById(
+      ToNumber(categoryId)
+    );
+    if (category.isActive == false)
+      throw new BadRequestException(
+        "دسته‌بندی فعال نیست . از دسته‌بندی های فعال استفاده کنید"
+      );
     const { Key, Location } = await this.s3service.uploadFile(
       image,
       "blogImage"
@@ -56,6 +67,7 @@ export class BlogService {
       imageKey: Key,
       readTime,
       blogStatus,
+      categoryId: ToNumber(categoryId),
     });
 
     return {
@@ -78,12 +90,16 @@ export class BlogService {
       readTime,
       title,
       to_date,
+      categoryId,
     } = filterDto;
 
     const where: FindOptionsWhere<BlogEntity> = {};
 
     if (authorId && !isNaN(parseInt(authorId))) {
       where.authorId = parseInt(authorId);
+    }
+    if (categoryId) {
+      where.categoryId = ToNumber(categoryId);
     }
 
     if (readTime && !isNaN(parseInt(readTime))) {
@@ -123,6 +139,7 @@ export class BlogService {
     const [blogs, count] = await this.blogRepo
       .createQueryBuilder(EntityNames.Blog)
       .leftJoin("blog.author", "author")
+      .leftJoin("blog.category", "category")
       .leftJoin(
         "blog.comments",
         "comments",
@@ -131,6 +148,7 @@ export class BlogService {
       )
       .leftJoin("comments.children", "children")
       .addSelect([
+        "category.name",
         "author.mobile",
         "author.last_name",
         "comments.comment",
@@ -162,8 +180,13 @@ export class BlogService {
         comments: {
           children: true,
         },
+        category: true,
       },
       select: {
+        category: {
+          name: true,
+          image: true,
+        },
         author: {
           last_name: true,
           mobile: true,
@@ -237,9 +260,22 @@ export class BlogService {
     image: Express.Multer.File,
     updateBlogDto: UpdateBlogDto
   ) {
-    const { blogStatus, content, description, readTime, title } = updateBlogDto;
+    const { blogStatus, content, description, readTime, title, categoryId } =
+      updateBlogDto;
+    console.log(image, typeof image);
+
     const blog = await this.findOneById(id);
     const updateObject: DeepPartial<BlogEntity> = {};
+    if (categoryId) {
+      const category = await this.categoryService.findOneById(
+        ToNumber(categoryId)
+      );
+      if (category.isActive == false)
+        throw new BadRequestException(
+          "دسته‌بندی فعال نیست . از دسته‌بندی های فعال استفاده کنید"
+        );
+      updateObject.categoryId = ToNumber(categoryId);
+    }
     if (image) {
       const { Key, Location } = await this.s3service.uploadFile(
         image,
@@ -252,6 +288,7 @@ export class BlogService {
         }
       }
     }
+
     if (blogStatus) updateObject.blogStatus = blogStatus;
     if (content) updateObject.content = content;
     if (description) updateObject.description = description;

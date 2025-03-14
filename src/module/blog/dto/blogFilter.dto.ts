@@ -7,4 +7,5 @@ export class BlogFilterDto {
   authorId?: string;
   from_date?: string;
   to_date?: string;
+  categoryId?:number;
 }

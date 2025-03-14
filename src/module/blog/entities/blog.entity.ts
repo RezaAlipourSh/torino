@@ -11,6 +11,7 @@ import {
 import { BlogStatus } from "../enum/blogStatus.enum";
 import { UserEntity } from "src/module/user/entities/user.entity";
 import { BlogCommentEntity } from "./blogcomments.entity";
+import { CategoryEntity } from "src/module/category/entities/category.entity";
 
 @Entity(EntityNames.Blog)
 export class BlogEntity {
@@ -32,6 +33,8 @@ export class BlogEntity {
   readTime: number;
   @Column()
   authorId: number;
+  @Column({ nullable: true })
+  categoryId: number;
   @CreateDateColumn()
   createdAt: Date;
   @UpdateDateColumn()
@@ -40,4 +43,8 @@ export class BlogEntity {
   author: UserEntity;
   @OneToMany(() => BlogCommentEntity, (comment) => comment.blog)
   comments: BlogCommentEntity[];
+  @ManyToOne(() => CategoryEntity, (category) => category.blogs, {
+    onDelete: "SET NULL",
+  })
+  category: CategoryEntity;
 }
