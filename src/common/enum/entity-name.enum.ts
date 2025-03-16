@@ -11,4 +11,5 @@ export enum EntityNames {
   Reserve = "reserve",
   Payment = "payment",
   Category = "category",
+  Discount = "discount",
 }
