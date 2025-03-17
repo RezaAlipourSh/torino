@@ -11,6 +11,7 @@ import { PaymentModule } from "../payment/payment.module";
 import { ReserveModule } from "../reserve/reserve.module";
 import { HttpApimodule } from "../http/http.module";
 import { CategoryModule } from "../category/category.module";
+import { DiscountModule } from "../discount/discount.module";
 
 @Module({
   imports: [
@@ -27,6 +28,7 @@ import { CategoryModule } from "../category/category.module";
     ReserveModule,
     CategoryModule,
     HttpApimodule,
+    DiscountModule,
   ],
   controllers: [],
   providers: [],

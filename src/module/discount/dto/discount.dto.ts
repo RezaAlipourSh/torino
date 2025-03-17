@@ -16,9 +16,11 @@ export class createDiscountDto {
   forNewComers: boolean;
   @ApiPropertyOptional()
   limit: number;
-  @ApiPropertyOptional()
+  @ApiPropertyOptional({
+    description: "کد تخفیف برای خریدهای بالاتر از این مقدار باشد.",
+  })
   buylimit: number;
-  @ApiPropertyOptional({ example: "2025-01-01T07:31:39.614Z" })
+  @ApiPropertyOptional({ example: "2025-05-01T07:31:39.614Z" })
   expiresIn: Date;
   @ApiPropertyOptional()
   tourId: number;
@@ -27,4 +29,11 @@ export class createDiscountDto {
   })
   @IsEnum(DiscountType, { message: "نوع کد تخفیف را به درستی وارد کنید" })
   type: string;
+}
+
+export class OneDiscountDto {
+  @ApiPropertyOptional()
+  code?: string;
+  @ApiPropertyOptional()
+  id?: number;
 }
