@@ -1,4 +1,4 @@
-import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
+import { ApiProperty, ApiPropertyOptional, PartialType } from "@nestjs/swagger";
 import { DiscountType } from "../discountType.enum";
 import { IsEnum, Length } from "class-validator";
 
@@ -37,3 +37,4 @@ export class OneDiscountDto {
   @ApiPropertyOptional()
   id?: number;
 }
+export class UpdateDiscountDto extends PartialType(createDiscountDto) {}
