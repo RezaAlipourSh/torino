@@ -1,5 +1,5 @@
 import { PartialType } from "@nestjs/mapped-types";
-import { AddUserBankAccountDto, CreateUserDto } from "./create-user.dto";
+import { CreateUserDto } from "./create-user.dto";
 import { ApiPropertyOptional } from "@nestjs/swagger";
 import {
   IsNumberString,
