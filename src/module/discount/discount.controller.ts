@@ -20,7 +20,13 @@ import {
 } from "./dto/discount.dto";
 import { ApiConsumes, ApiOperation } from "@nestjs/swagger";
 import { FormType } from "src/common/enum/formType.enum";
-import { OneDiscountFilter } from "./decorator/OneDiscount.Decorator";
+import {
+  DiscountFilter,
+  OneDiscountFilter,
+} from "./decorator/OneDiscount.Decorator";
+import { Pagination } from "src/common/decorator/pagination.decorator";
+import { PaginationDto } from "src/common/dto/pagination.dto";
+import { DiscountFilterDto } from "./dto/discountFilter.dto";
 
 @Controller("Discount")
 @AuthDecorator()
@@ -34,11 +40,21 @@ export class DiscountController {
     return this.discountService.createDiscount(dto);
   }
 
-  @Get()
+  @Get("/getOne")
   @OneDiscountFilter()
   @ApiConsumes(FormType.Urlencoded, FormType.Json)
   findOne(@Query() dto: OneDiscountDto) {
     return this.discountService.findOne(dto);
+  }
+
+  @Get()
+  @Pagination()
+  @DiscountFilter()
+  findAll(
+    @Query() paginationDto: PaginationDto,
+    @Query() FilterDto: DiscountFilterDto
+  ) {
+    return this.discountService.findAll(paginationDto, FilterDto);
   }
 
   @Patch(":id")

@@ -8,7 +8,14 @@ import {
 } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { DiscountEntity } from "./entities/discount.entity";
-import { DeepPartial, FindOptionsWhere, Repository } from "typeorm";
+import {
+  DeepPartial,
+  FindOptionsWhere,
+  ILike,
+  LessThanOrEqual,
+  MoreThanOrEqual,
+  Repository,
+} from "typeorm";
 import {
   createDiscountDto,
   OneDiscountDto,
@@ -19,8 +26,14 @@ import { Request } from "express";
 import { TourService } from "../tour/tour.service";
 import { ToNumber } from "src/common/utility/Number.util";
 import { ToBoolean } from "src/common/utility/boolean.util";
-import { isNotEmptyObject } from "class-validator";
+import { isBoolean, isDate, isEnum, isNotEmptyObject } from "class-validator";
 import { DiscountType } from "./discountType.enum";
+import { PaginationDto } from "src/common/dto/pagination.dto";
+import { DiscountFilterDto } from "./dto/discountFilter.dto";
+import {
+  paginationGenerator,
+  paginationSolver,
+} from "src/common/utility/paginatiion.util";
 
 @Injectable({ scope: Scope.REQUEST })
 export class DiscountService {
@@ -198,6 +211,108 @@ export class DiscountService {
     const discount = await this.discountRepo.findOne({ where });
     if (!discount) throw new NotFoundException("کد تخفیف یافت نشد");
     return discount;
+  }
+
+  async findAll(paginationDto: PaginationDto, FilterDto: DiscountFilterDto) {
+    const {
+      amount,
+      buylimit,
+      code,
+      created_from_date,
+      created_to_date,
+      expires_from_date,
+      expires_to_date,
+      forNewComers,
+      isActive,
+      discountLimit,
+      percent,
+      tourId,
+      type,
+      usage,
+    } = FilterDto;
+    const { limit, page, skip } = paginationSolver(
+      paginationDto.page,
+      paginationDto.limit
+    );
+    console.log(FilterDto, "filter");
+
+    let where: FindOptionsWhere<DiscountEntity> = {};
+    if (type && isEnum(type, DiscountType)) {
+      where.type = type;
+    }
+    if (code && code.length >= 4 && code.length <= 20) {
+      where.code = ILike(`%${code}%`);
+    }
+    if (isActive) where.isActive = ToBoolean(isActive);
+
+    if (forNewComers) where.forNewComers = ToBoolean(forNewComers);
+
+    if (amount) where.amount = ToNumber(amount);
+
+    if (discountLimit) where.limit = ToNumber(discountLimit);
+    if (percent) where.percent = ToNumber(percent);
+    if (buylimit) where.buylimit = ToNumber(buylimit);
+    if (tourId) where.tourId = ToNumber(tourId);
+    if (usage) where.usage = ToNumber(usage);
+
+    if (
+      created_from_date &&
+      created_to_date &&
+      isDate(new Date(created_from_date)) &&
+      isDate(new Date(created_to_date))
+    ) {
+      let from = new Date(new Date(created_from_date).setUTCHours(0, 0, 0));
+      let to = new Date(new Date(created_to_date).setUTCHours(0, 0, 0));
+      where.createdAt = (MoreThanOrEqual(from), LessThanOrEqual(to));
+    } else if (created_from_date && isDate(new Date(created_from_date))) {
+      let from = new Date(new Date(created_from_date).setUTCHours(0, 0, 0));
+      where.createdAt = MoreThanOrEqual(from);
+    } else if (created_to_date && isDate(new Date(created_to_date))) {
+      let to = new Date(new Date(created_to_date).setUTCHours(0, 0, 0));
+      where.createdAt = LessThanOrEqual(to);
+    }
+
+    if (
+      expires_from_date &&
+      expires_to_date &&
+      isDate(new Date(expires_from_date)) &&
+      isDate(new Date(expires_to_date))
+    ) {
+      let from = new Date(new Date(expires_from_date).setUTCHours(0, 0, 0));
+      let to = new Date(new Date(expires_to_date).setUTCHours(0, 0, 0));
+      where.expiresIn = (MoreThanOrEqual(from), LessThanOrEqual(to));
+    } else if (expires_from_date && isDate(new Date(expires_from_date))) {
+      let from = new Date(new Date(expires_from_date).setUTCHours(0, 0, 0));
+      where.expiresIn = MoreThanOrEqual(from);
+    } else if (expires_to_date && isDate(new Date(expires_to_date))) {
+      let to = new Date(new Date(expires_to_date).setUTCHours(0, 0, 0));
+      where.expiresIn = LessThanOrEqual(to);
+    }
+    console.log(where, "where");
+
+    const [discounts, count] = await this.discountRepo.findAndCount({
+      where,
+      relations: {
+        tour: true,
+        baskets: true,
+      },
+      select: {
+        tour: {
+          name: true,
+        },
+        baskets: {
+          id: true,
+        },
+      },
+      skip,
+      take: limit,
+      order: { id: "DESC" },
+    });
+
+    return {
+      pagination: paginationGenerator(count, page, limit),
+      discounts,
+    };
   }
 
   async deleteOne(dto: OneDiscountDto) {
