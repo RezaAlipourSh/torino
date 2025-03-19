@@ -237,9 +237,9 @@ export class DiscountService {
     console.log(FilterDto, "filter");
 
     let where: FindOptionsWhere<DiscountEntity> = {};
-    if (type && isEnum(type, DiscountType)) {
-      where.type = type;
-    }
+
+    if (type && isEnum(type, DiscountType)) where.type = type;
+
     if (code && code.length >= 4 && code.length <= 20) {
       where.code = ILike(`%${code}%`);
     }
