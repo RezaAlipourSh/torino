@@ -5,9 +5,15 @@ import { AuthModule } from "../auth/auth.module";
 import { TypeOrmModule } from "@nestjs/typeorm";
 import { BasketEntity } from "./entities/basket.entity";
 import { TourModule } from "../tour/tour.module";
+import { DiscountModule } from "../discount/discount.module";
 
 @Module({
-  imports: [AuthModule, TourModule, TypeOrmModule.forFeature([BasketEntity])],
+  imports: [
+    AuthModule,
+    TourModule,
+    DiscountModule,
+    TypeOrmModule.forFeature([BasketEntity]),
+  ],
   controllers: [BasketController],
   providers: [BasketService],
   exports: [BasketService, TypeOrmModule],

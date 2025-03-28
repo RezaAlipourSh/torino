@@ -10,3 +10,8 @@ export class BasketDto {
   @Validate(ValidNumber)
   count: number;
 }
+
+export class BasketDiscountDto {
+  @ApiProperty()
+  code: string;
+}

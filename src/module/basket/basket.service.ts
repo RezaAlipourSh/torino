@@ -1,5 +1,6 @@
 import {
   BadRequestException,
+  ConflictException,
   Inject,
   Injectable,
   NotFoundException,
@@ -10,9 +11,12 @@ import { BasketEntity } from "./entities/basket.entity";
 import { Repository } from "typeorm";
 import { REQUEST } from "@nestjs/core";
 import { Request } from "express";
-import { BasketDto } from "./dto/basket.dto";
+import { BasketDiscountDto, BasketDto } from "./dto/basket.dto";
 import { TourService } from "../tour/tour.service";
 import { ToNumber } from "src/common/utility/Number.util";
+import { DiscountService } from "../discount/discount.service";
+import { DiscountType } from "../discount/discountType.enum";
+import { CheckNewComers } from "../discount/util/discount.util";
 
 @Injectable({ scope: Scope.REQUEST })
 export class BasketService {
@@ -20,7 +24,8 @@ export class BasketService {
     @InjectRepository(BasketEntity)
     private basketRepo: Repository<BasketEntity>,
     @Inject(REQUEST) private req: Request,
-    private tourService: TourService
+    private tourService: TourService,
+    private discountService: DiscountService
   ) {}
 
   async AddToBasket(basketDto: BasketDto) {
@@ -133,5 +138,85 @@ export class BasketService {
       });
 
     return tour;
+  }
+
+  async AddDiscountToBasket(dto: BasketDiscountDto) {
+    const { code } = dto;
+    const { id: userId, created_at } = this.req.user;
+
+    const discount = await this.discountService.findOne({ code });
+
+    const userBasketDiscount = await this.basketRepo.findOneBy({
+      discountId: discount.id,
+      userId,
+    });
+    if (userBasketDiscount)
+      throw new ConflictException("کد تخفیف از قبل اعمال شده است");
+
+    if (discount.forNewComers) CheckNewComers(created_at, 30);
+
+    if (!discount.isActive)
+      throw new BadRequestException("کد تخفیف فعال نمی‌باشد");
+
+    if (discount.limit && discount.limit <= discount.usage)
+      throw new BadRequestException(" ظرفیت کد تخفیف به پایان رسیده است");
+
+    if (
+      discount?.expiresIn &&
+      discount.expiresIn?.getTime() <= new Date().getTime()
+    )
+      throw new BadRequestException("کد تخفیف منقضی شده است");
+
+    const userBasket = await this.basketRepo.findOneBy({
+      userId,
+    });
+
+    if (
+      discount.buylimit &&
+      discount.buylimit > (await this.getBasket()).PaymentAmount
+    )
+      throw new BadRequestException({
+        message:
+          "حداقل مقدار خرید برای این کد تخفیف بیشتر از مبلغ خرید شما است",
+        limit: discount.buylimit,
+        amount: (await this.getBasket()).PaymentAmount,
+      });
+
+    if (discount.type == DiscountType.Tour) {
+      if (userBasket.tourId !== discount.tourId)
+        throw new BadRequestException("کد تخفیف برای این تور نمی‌باشد");
+    }
+
+    await this.basketRepo.update(
+      { id: userBasket.id },
+      { discountId: discount.id }
+    );
+
+    const discountUsage = ToNumber(discount.usage) + 1;
+    await this.discountService.UpdateDiscountUsage(discount.id, discountUsage);
+
+    return {
+      message: "کد تخفیف به درستی اعمال شد",
+    };
+  }
+
+  async removeDiscountFromBasket(dto: BasketDiscountDto) {
+    const { code } = dto;
+    const { id: userId } = this.req.user;
+    const discount = await this.discountService.findOne({ code });
+    const basket = await this.basketRepo.findOneBy({
+      userId,
+      discountId: discount.id,
+    });
+    if (!basket) throw new NotFoundException("کد تخفیف در سبد خرید موجود نیست");
+
+    await this.basketRepo.update({ id: basket.id }, { discountId: null });
+
+    const discountUsage = ToNumber(discount.usage) - 1;
+    await this.discountService.UpdateDiscountUsage(discount.id, discountUsage);
+
+    return {
+      message: "کد تخفیف به درستی از سبد خزید حذف شد",
+    };
   }
 }

@@ -10,12 +10,14 @@ import { ReserveEntity } from "../reserve/entities/reserve.entity";
 import { BasketModule } from "../basket/basket.module";
 import { TourModule } from "../tour/tour.module";
 import { ReserveService } from "../reserve/reserve.service";
+import { DiscountModule } from "../discount/discount.module";
 
 @Module({
   imports: [
     AuthModule,
     BasketModule,
     TourModule,
+    DiscountModule,
     TypeOrmModule.forFeature([PaymentEntity, BasketEntity, ReserveEntity]),
   ],
   controllers: [PaymentController],

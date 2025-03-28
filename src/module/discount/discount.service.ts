@@ -322,4 +322,10 @@ export class DiscountService {
       message: "به درستی حذف شد",
     };
   }
+
+  async UpdateDiscountUsage(id: number, usage: number) {
+    const discount = await this.findOne({ id });
+    discount.usage = usage;
+    await this.discountRepo.save(discount);
+  }
 }
